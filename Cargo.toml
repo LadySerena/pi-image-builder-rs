@@ -1,0 +1,9 @@
+[package]
+name = "pi-image-builder-rs"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+mbrman = "0.5.0"
+reqwest = { version = "0.11.12", features = ["blocking"] }
+xz2 = "0.1.7"
