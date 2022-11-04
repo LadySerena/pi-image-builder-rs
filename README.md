@@ -18,3 +18,8 @@ lol
 ## error handling
 
 #TODO
+
+## Required C Libraries
+
+- loopdev requires `libclang.so`
+    - `sudo pacman -Sy clang`
