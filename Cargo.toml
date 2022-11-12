@@ -2,11 +2,19 @@
 name = "pi-image-builder-rs"
 version = "0.1.0"
 edition = "2021"
-
 [dependencies]
 bytes = "1.2.1"
+glib = "0.16.2"
+indoc = "1.0.7"
 loopdev = "0.4.0"
 mbrman = "0.5.0"
 reqwest = { version = "0.11.12", features = ["blocking"] }
+rust-embed = "6.4.2"
+scopeguard = "1.1.0"
 sha256 = "1.1.1"
 xz2 = "0.1.7"
+
+
+[build-dependencies]
+bindgen = "0.61.0"
+

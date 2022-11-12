@@ -5,10 +5,17 @@ use std::{fs, io};
 use bytes::buf::*;
 use xz2::read::XzDecoder;
 
-pub fn xz_decompress(file_name: String, output_name: String) {
-    let path = Path::new(file_name.as_str());
-    let compressed_data = fs::read(path).unwrap();
+pub fn xz_decompress(input_name: String, output_name: String) {
+    let input_path = Path::new(input_name.as_str());
+    let output_path = Path::new(output_name.as_str());
+
+    if output_path.exists() {
+        return;
+    }
+
+    let compressed_data = fs::read(input_path).unwrap();
     let mut decompressor = XzDecoder::new(compressed_data.reader());
-    let mut output_file = File::create(Path::new(output_name.as_str())).unwrap();
+
+    let mut output_file = File::create(output_path).unwrap();
     io::copy(&mut decompressor, &mut output_file).unwrap();
 }
