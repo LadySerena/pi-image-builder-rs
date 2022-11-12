@@ -674,6 +674,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "lvm-rs"
+version = "0.1.0"
+source = "git+https://github.com/LadySerena/lvm-rs.git?branch=main#4605aa07fad84c07636307924303125b68b14c2b"
+dependencies = [
+ "bindgen 0.61.0",
+]
+
+[[package]]
 name = "lzma-sys"
 version = "0.1.20"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -843,6 +851,7 @@ dependencies = [
  "glib",
  "indoc",
  "loopdev",
+ "lvm-rs",
  "mbrman",
  "reqwest",
  "rust-embed",

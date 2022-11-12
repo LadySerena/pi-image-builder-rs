@@ -1,4 +1,4 @@
-use std::ffi::c_void;
+use std::ffi::CStr;
 use std::ptr;
 
 use glib::ffi::gboolean;
@@ -8,7 +8,6 @@ use glib::Error;
 extern "C" {
     fn bd_lvm_check_deps() -> gboolean;
     fn bd_lvm_init() -> gboolean;
-    fn bd_lvm_pvs(error: *mut *mut Error);
     fn bd_lvm_close();
 }
 
@@ -18,8 +17,10 @@ pub fn testing() {
     let init = unsafe { bd_lvm_init() };
     assert_ne!(init, 0);
     unsafe {
+        // ok this totally did work tho and now it's broken?
         let mut error = ptr::null_mut();
-        bd_lvm_pvs(&mut error);
+        let pv_data = lvm_rs::bd_lvm_pvs(&mut error);
+        assert_eq!(error, ptr::null_mut());
     }
 
     unsafe {

@@ -7,6 +7,7 @@ bytes = "1.2.1"
 glib = "0.16.2"
 indoc = "1.0.7"
 loopdev = "0.4.0"
+lvm-rs = { git = "https://github.com/LadySerena/lvm-rs.git", version = "0.1.0", branch = "main" }
 mbrman = "0.5.0"
 reqwest = { version = "0.11.12", features = ["blocking"] }
 rust-embed = "6.4.2"
