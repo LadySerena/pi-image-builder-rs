@@ -1,6 +1,8 @@
 #![warn(clippy::all, clippy::pedantic, clippy::cargo)]
 #[macro_use(defer)]
 extern crate scopeguard;
+extern crate core;
+
 use std::fs::File;
 
 use mbrman::MBR;

@@ -7,7 +7,7 @@ build = "build.rs"
 bytes = "1.2.1"
 glib = "0.16.2"
 indoc = "1.0.7"
-loopdev = "0.4.0"
+loopdev = { git = "https://github.com/mdaffin/loopdev", rev = "64a8ddb", version = "0.5.0" }
 lvm-rs = { git = "https://github.com/LadySerena/lvm-rs.git", version = "0.1.0", branch = "main" }
 alpm = "2.2.1"
 size = "0.4.1"
