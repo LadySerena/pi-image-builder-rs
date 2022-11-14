@@ -23,3 +23,5 @@ lol
 
 - loopdev requires `libclang.so`
     - `sudo pacman -Sy clang`
+- lvm-rs requires `libbd_lvm.so`
+    - `sudo pacman -Sy libblockdev`
