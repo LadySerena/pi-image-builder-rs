@@ -17,11 +17,11 @@ pub fn allocate_image(image_path: String, size: Size) {
     let mut file_handle = allocate_file(path.as_ref(), size);
     create_partition_tables(&mut file_handle, Size::from_mebibytes(250));
     file_handle.flush().unwrap();
-    let backing_device = setup_loop(path.as_ref());
-    //
-    // lvm::logical_volume_creation(backing_device);
+    let backing_device = Rc::new(setup_loop(path.as_ref()));
 
-    // defer!(backing_device.detach().unwrap());
+    lvm::logical_volume_creation(backing_device.as_ref());
+
+    defer!(backing_device.detach().unwrap());
 }
 
 fn allocate_file(path: &Path, size: Size) -> File {

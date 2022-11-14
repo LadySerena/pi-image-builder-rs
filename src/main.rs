@@ -15,7 +15,6 @@ mod compression;
 mod configuration;
 mod fetch_media;
 mod loop_shenanigans;
-mod lvm;
 mod partitioning;
 
 // TODO need to verify sha on image
