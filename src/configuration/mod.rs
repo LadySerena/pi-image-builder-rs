@@ -5,8 +5,6 @@
 // - configure cloud init
 // - write up fstab entries
 
-use crate::configuration::models::SysctlList;
-
 mod kernel_config;
 mod models;
 

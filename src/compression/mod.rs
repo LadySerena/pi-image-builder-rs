@@ -2,7 +2,7 @@ use std::fs::File;
 use std::path::Path;
 use std::{fs, io};
 
-use bytes::buf::*;
+use bytes::buf::Buf;
 use xz2::read::XzDecoder;
 
 pub fn xz_decompress(input_name: String, output_name: String) {

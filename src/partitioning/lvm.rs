@@ -2,14 +2,11 @@ use std::borrow::Borrow;
 use std::error::Error;
 use std::ffi::{CStr, CString};
 use std::fmt::{Display, Formatter};
-use std::ops::{Deref, Index};
+
 use std::ptr;
-use std::ptr::{slice_from_raw_parts, NonNull};
-use std::rc::Rc;
-use std::slice::from_raw_parts;
 
 use loopdev::LoopDevice;
-use lvm_rs::{gchar, gconstpointer, BDLVMVGdata};
+use lvm_rs::{gchar, BDLVMVGdata};
 
 #[derive(Debug)]
 struct LvmError {
@@ -44,7 +41,7 @@ pub fn logical_volume_creation(device: &LoopDevice) {
     pv_create(path.as_str()).unwrap();
     let volume_group_name = vg_create(path.as_str()).unwrap();
     let volume_group_data = query_volume_groups(volume_group_name).unwrap();
-    let logical_volume_name = lv_create(volume_group_data.borrow()).unwrap();
+    let _logical_volume_name = lv_create(volume_group_data.borrow()).unwrap();
 }
 
 fn init_lvm() -> bool {

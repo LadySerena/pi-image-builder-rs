@@ -3,13 +3,7 @@
 extern crate scopeguard;
 extern crate core;
 
-use std::fs::File;
-
-use mbrman::MBR;
 use size::Size;
-
-use crate::compression::xz_decompress;
-use crate::fetch_media::download_if_needed;
 
 mod compression;
 mod configuration;

@@ -1,10 +1,9 @@
+use crate::configuration;
 use std::error::Error;
 use std::fmt::{Display, Formatter};
-use std::ops::{Add, Deref};
-use std::path::{Path, PathBuf};
+use std::ops::Add;
+use std::path::PathBuf;
 use std::{fs, io};
-
-use crate::configuration::models::SysctlErr::DropInError;
 
 #[derive(Debug)]
 pub enum SysctlErr {
@@ -44,19 +43,20 @@ impl SysctlList {
     pub fn new(sysctls: &[SysctlEntry], file_name: &str) -> Result<Self, SysctlDropInError> {
         let drop_in = Box::new(PathBuf::from("/etc/sysctl.d/"));
 
-        match is_valid_sysctl_dir(drop_in.deref()) {
-            true => Ok(SysctlList {
+        if is_valid_sysctl_dir(&drop_in) {
+            Ok(SysctlList {
                 sysctls: sysctls.to_vec(),
-                drop_in_file: drop_in.clone().join(file_name),
-            }),
-            false => Err(SysctlDropInError::new(drop_in.to_path_buf())),
+                drop_in_file: drop_in.join(file_name),
+            })
+        } else {
+            Err(SysctlDropInError::new(drop_in.to_path_buf()))
         }
     }
 
     pub fn collect_sysctls(&self) -> String {
         self.sysctls
             .iter()
-            .map(|x| x.write_to_string())
+            .map(configuration::models::SysctlEntry::write_to_string)
             .collect::<Vec<String>>()
             .join("\n")
             .add("\n")
