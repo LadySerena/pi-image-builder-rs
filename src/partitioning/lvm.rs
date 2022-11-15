@@ -45,7 +45,7 @@ pub fn logical_volume_creation(device: &LoopDevice) {
     pv_create(path.as_str()).unwrap();
     let volume_group_name = vg_create(path.as_str()).unwrap();
     let volume_group_data = query_volume_groups(volume_group_name).unwrap();
-    let logical_volume_name = lv_create(volume_group_data.borrow()).unwrap();
+    let _logical_volume_name = lv_create(volume_group_data.borrow()).unwrap();
 }
 
 fn init_lvm() -> bool {
@@ -195,7 +195,7 @@ fn get_logical_volume_sizes(volume_group: &LVMVGData) -> (Size, Size, Size) {
     //since this function is being called after the volume group creation I am
     // using the total size instead of free
     let total_size = volume_group.size;
-    let mut available = total_size - (3 * 256 * BYTE_TO_MEBIBYTE_FACTOR);
+    let _available = total_size - (3 * 256 * BYTE_TO_MEBIBYTE_FACTOR);
 
     todo!()
 }

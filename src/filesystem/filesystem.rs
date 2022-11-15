@@ -1,7 +1,7 @@
 use bdfs_sys::{bd_fs_check_deps, bd_fs_close, bd_fs_init};
 use loopdev::LoopDevice;
 
-pub fn create_image_file_systems(device: &LoopDevice) {
+pub fn create_image_file_systems(_device: &LoopDevice) {
     let init = init_fs();
     defer!(close_fs());
     assert!(init, "could not initialize filesystem");
