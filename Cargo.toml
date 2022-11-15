@@ -17,8 +17,5 @@ rust-embed = "6.4.2"
 scopeguard = "1.1.0"
 sha256 = "1.1.1"
 xz2 = "0.1.7"
-
-
-[build-dependencies]
-bindgen = "0.61.0"
+bdfs-sys = { git = "https://github.com/LadySerena/bdfs-sys.git", branch = "main", version = "0.1.0" }
 
