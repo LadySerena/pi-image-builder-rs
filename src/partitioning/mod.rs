@@ -1,8 +1,7 @@
-mod lvm;
-
+use std::borrow::{Borrow, BorrowMut};
 use std::fs::{File, OpenOptions};
 use std::io::Write;
-
+use std::ops::Deref;
 use std::path::{Path, PathBuf};
 use std::rc::Rc;
 
@@ -10,7 +9,9 @@ use loopdev::{LoopControl, LoopDevice};
 use mbrman::{MBRPartitionEntry, BOOT_ACTIVE, BOOT_INACTIVE, CHS, MBR};
 use size::Size;
 
-pub fn allocate_image(image_path: String, size: Size) {
+mod lvm;
+
+pub fn allocate_image(image_path: String, size: Size) -> LoopDevice {
     // needs to do the following
 
     let path = Rc::new(PathBuf::from(image_path));
@@ -21,7 +22,7 @@ pub fn allocate_image(image_path: String, size: Size) {
 
     lvm::logical_volume_creation(backing_device.as_ref());
 
-    defer!(backing_device.detach().unwrap());
+    Rc::try_unwrap(backing_device).unwrap()
 }
 
 fn allocate_file(path: &Path, size: Size) -> File {

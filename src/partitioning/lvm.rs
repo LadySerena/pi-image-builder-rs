@@ -2,11 +2,11 @@ use std::borrow::Borrow;
 use std::error::Error;
 use std::ffi::{CStr, CString};
 use std::fmt::{Display, Formatter};
-
 use std::ptr;
 
 use loopdev::LoopDevice;
 use lvm_rs::{gchar, BDLVMVGdata};
+use size::Size;
 
 #[derive(Debug)]
 struct LvmError {
@@ -25,6 +25,7 @@ impl Error for LvmError {}
 pub struct LVMVGData {
     pub name: String,
     pub uuid: String,
+    // u64 is bytes except for extent_count, free_count, pv_count
     pub size: u64,
     pub free: u64,
     pub extent_size: u64,
@@ -32,6 +33,9 @@ pub struct LVMVGData {
     pub free_count: u64,
     pub pv_count: u64,
 }
+
+const BYTE_TO_MEBIBYTE_FACTOR: u64 = 1024 * 1024;
+const BYTE_TO_GIBIBYTE_FACTOR: u64 = BYTE_TO_MEBIBYTE_FACTOR * 1024;
 
 pub fn logical_volume_creation(device: &LoopDevice) {
     let init = init_lvm();
@@ -41,7 +45,7 @@ pub fn logical_volume_creation(device: &LoopDevice) {
     pv_create(path.as_str()).unwrap();
     let volume_group_name = vg_create(path.as_str()).unwrap();
     let volume_group_data = query_volume_groups(volume_group_name).unwrap();
-    let _logical_volume_name = lv_create(volume_group_data.borrow()).unwrap();
+    let logical_volume_name = lv_create(volume_group_data.borrow()).unwrap();
 }
 
 fn init_lvm() -> bool {
@@ -181,6 +185,19 @@ fn lv_create(volume_group: &LVMVGData) -> Result<String, LvmError> {
             Ok(logical_name.to_string())
         }
     }
+}
+
+/// This function parses the volume group passed in and determines the sizes of
+/// the root volume, containerd volume, and csi volume respectively. This should
+/// only be used when flashing a new image onto media since storing 256GiB
+/// images in GCP is a non starter.
+fn get_logical_volume_sizes(volume_group: &LVMVGData) -> (Size, Size, Size) {
+    //since this function is being called after the volume group creation I am
+    // using the total size instead of free
+    let total_size = volume_group.size;
+    let mut available = total_size - (3 * 256 * BYTE_TO_MEBIBYTE_FACTOR);
+
+    todo!()
 }
 
 fn get_partition_path(device: &LoopDevice) -> Option<String> {

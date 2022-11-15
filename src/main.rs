@@ -1,14 +1,14 @@
 #![warn(clippy::all, clippy::pedantic, clippy::cargo)]
+extern crate core;
 #[macro_use(defer)]
 extern crate scopeguard;
-extern crate core;
 
 use size::Size;
 
 mod compression;
 mod configuration;
 mod fetch_media;
-mod loop_shenanigans;
+mod filesystem;
 mod partitioning;
 
 // TODO need to verify sha on image
@@ -33,7 +33,10 @@ steps to reimplement
 // Mount image
 
 fn main() {
-    partitioning::allocate_image("lady_tel_test.img".to_string(), Size::from_gib(3));
+    let device = partitioning::allocate_image("lady_tel_test.img".to_string(), Size::from_gib(3));
+    // TODO need to deactivate the logical volume prior to detaching the loop device
+    defer!(device.detach().unwrap());
+    println!("{}", device.path().unwrap().to_str().unwrap());
 }
 
 fn get_urls(base: &str, file: &str) -> String {
