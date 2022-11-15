@@ -1,9 +1,10 @@
-use crate::configuration;
 use std::error::Error;
 use std::fmt::{Display, Formatter};
 use std::ops::Add;
 use std::path::PathBuf;
 use std::{fs, io};
+
+use crate::configuration;
 
 #[derive(Debug)]
 pub enum SysctlErr {

@@ -1,9 +1,9 @@
-use reqwest::blocking::{Client, ClientBuilder};
 use std::fs::File;
 use std::io::Write;
 use std::path::Path;
 use std::time::Duration;
 
+use reqwest::blocking::{Client, ClientBuilder};
 use reqwest::Url;
 
 pub fn download_if_needed(force_overwrite: bool, urls: Vec<&str>) {
