@@ -1,17 +1,32 @@
-
 use std::fs::{File, OpenOptions};
 use std::io::Write;
 
 use std::path::{Path, PathBuf};
 use std::rc::Rc;
 
+use crate::partitioning::partition::create_partition_tables;
 use loopdev::{LoopControl, LoopDevice};
-use mbrman::{MBRPartitionEntry, BOOT_ACTIVE, BOOT_INACTIVE, CHS, MBR};
+
 use size::Size;
 
 mod lvm;
+mod partition;
 
-pub fn allocate_image(image_path: String, size: Size) -> LoopDevice {
+pub struct ImageInfo {
+    pub vg_name: String,
+    pub lv_name: String,
+    pub device: LoopDevice,
+}
+
+impl ImageInfo {
+    pub fn detach(&self) {
+        lvm::deactivate_logical_volume(self.vg_name.as_str(), self.lv_name.as_str()).unwrap();
+        lvm::close_lvm();
+        self.device.detach().unwrap();
+    }
+}
+
+pub fn allocate_image(image_path: String, size: Size) -> ImageInfo {
     // needs to do the following
 
     let path = Rc::new(PathBuf::from(image_path));
@@ -20,9 +35,15 @@ pub fn allocate_image(image_path: String, size: Size) -> LoopDevice {
     file_handle.flush().unwrap();
     let backing_device = Rc::new(setup_loop(path.as_ref()));
 
-    lvm::logical_volume_creation(backing_device.as_ref());
+    let volumes = lvm::logical_volume_creation(backing_device.as_ref());
+    let vg_name = volumes.0;
+    let lv_name = volumes.1;
 
-    Rc::try_unwrap(backing_device).unwrap()
+    ImageInfo {
+        vg_name,
+        lv_name,
+        device: Rc::try_unwrap(backing_device).unwrap(),
+    }
 }
 
 fn allocate_file(path: &Path, size: Size) -> File {
@@ -45,51 +66,4 @@ fn setup_loop(path: &Path) -> LoopDevice {
         .attach(path.to_str().unwrap())
         .unwrap();
     device
-}
-
-fn create_partition_tables(device: &mut File, boot_size: Size) {
-    let sector_size = 512;
-    let mut mbr = Rc::new(MBR::new_from(device, sector_size, [0xff; 4]).unwrap());
-
-    let boot_sectors = boot_bytes_to_sectors(boot_size, sector_size);
-
-    Rc::get_mut(&mut mbr).unwrap()[1] = MBRPartitionEntry {
-        boot: BOOT_ACTIVE,
-
-        first_chs: CHS::empty(),
-        // w95 fat32 (LBA)
-        sys: 0xc,
-        last_chs: CHS::empty(),
-        starting_lba: 4 * sector_size,
-        sectors: boot_sectors,
-    };
-
-    let root_partition = get_next_lba_and_remainder(Rc::as_ref(&mbr));
-
-    Rc::get_mut(&mut mbr).unwrap()[2] = MBRPartitionEntry {
-        boot: BOOT_INACTIVE,
-        first_chs: CHS::empty(),
-        // lvm partition id
-        sys: 0x8e,
-        last_chs: CHS::empty(),
-        starting_lba: root_partition.0,
-        sectors: root_partition.1,
-    };
-
-    Rc::get_mut(&mut mbr).unwrap().write_into(device).unwrap();
-}
-
-fn boot_bytes_to_sectors(input: Size, sector_size: u32) -> u32 {
-    let mut size = input.bytes() as u32 / sector_size;
-    let remainder = input.bytes() as u32 % sector_size;
-    if remainder != 0 {
-        size += remainder;
-    }
-    size
-}
-
-fn get_next_lba_and_remainder(disk: &MBR) -> (u32, u32) {
-    let leftover_sectors = disk.disk_size - disk[1].starting_lba - disk[1].sectors;
-    let starting_lba = disk[1].starting_lba + disk[1].sectors;
-    (starting_lba, leftover_sectors)
 }

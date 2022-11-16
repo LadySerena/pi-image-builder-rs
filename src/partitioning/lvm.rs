@@ -1,25 +1,25 @@
 use std::borrow::Borrow;
-use std::error::Error;
+use std::error::Error as StdError;
 use std::ffi::{CStr, CString};
 use std::fmt::{Display, Formatter};
 use std::ptr;
 
 use loopdev::LoopDevice;
-use lvm_rs::{gchar, BDLVMVGdata};
+use lvm_rs::{bd_lvm_lvdeactivate, gchar, BDLVMVGdata};
 use size::Size;
 
 #[derive(Debug)]
-struct LvmError {
+pub struct Error {
     message: String,
 }
 
-impl Display for LvmError {
+impl Display for Error {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.message)
     }
 }
 
-impl Error for LvmError {}
+impl StdError for Error {}
 
 #[derive(Clone)]
 pub struct LVMVGData {
@@ -34,18 +34,57 @@ pub struct LVMVGData {
     pub pv_count: u64,
 }
 
+#[derive(Clone)]
+pub struct LVMLVData {
+    pub name: String,
+    pub uuid: String,
+    // u64 is bytes except for extent_count, free_count, pv_count
+    pub size: u64,
+    pub free: u64,
+    pub extent_size: u64,
+    pub extent_count: u64,
+    pub free_count: u64,
+    pub pv_count: u64,
+}
+
 const BYTE_TO_MEBIBYTE_FACTOR: u64 = 1024 * 1024;
 const BYTE_TO_GIBIBYTE_FACTOR: u64 = BYTE_TO_MEBIBYTE_FACTOR * 1024;
 
-pub fn logical_volume_creation(device: &LoopDevice) {
+pub fn logical_volume_creation(device: &LoopDevice) -> (String, String) {
     let init = init_lvm();
-    defer!(close_lvm());
     assert!(init, "could not initialize lvm");
     let path = get_partition_path(device).unwrap();
     pv_create(path.as_str()).unwrap();
     let volume_group_name = vg_create(path.as_str()).unwrap();
-    let volume_group_data = query_volume_groups(volume_group_name).unwrap();
-    let _logical_volume_name = lv_create(volume_group_data.borrow()).unwrap();
+    let volume_group_data = get_volume_group(volume_group_name).unwrap();
+    let logical_volume_name = lv_create(volume_group_data.borrow()).unwrap();
+    (
+        volume_group_name.to_string(),
+        logical_volume_name.to_string(),
+    )
+}
+
+pub fn deactivate_logical_volume(vg_name: &str, lv_name: &str) -> Result<(), Error> {
+    let c_lv_name = CString::new(lv_name).unwrap();
+    let c_vg_name = CString::new(vg_name).unwrap();
+    unsafe {
+        let error = ptr::null_mut();
+        let ok = bd_lvm_lvdeactivate(
+            c_vg_name.as_ptr(),
+            c_lv_name.as_ptr(),
+            ptr::null_mut(),
+            error,
+        );
+        if ok == 0 {
+            let slice = CStr::from_ptr((*(*error)).message);
+            let ret = Error {
+                message: String::from_utf8_lossy(slice.to_bytes()).to_string(),
+            };
+            Err(ret)
+        } else {
+            Ok(())
+        }
+    }
 }
 
 fn init_lvm() -> bool {
@@ -64,7 +103,7 @@ fn init_lvm() -> bool {
     }
 }
 
-fn pv_create(partition_path: &str) -> Result<(), LvmError> {
+fn pv_create(partition_path: &str) -> Result<(), Error> {
     let c_partition = CString::new(partition_path).unwrap();
 
     unsafe {
@@ -73,7 +112,7 @@ fn pv_create(partition_path: &str) -> Result<(), LvmError> {
             lvm_rs::bd_lvm_pvcreate(c_partition.as_ptr(), 0, 0, ptr::null_mut(), error);
         if create_output == 0 {
             let slice = CStr::from_ptr((*(*error)).message);
-            let ret = LvmError {
+            let ret = Error {
                 message: String::from_utf8_lossy(slice.to_bytes()).to_string(),
             };
             Err(ret)
@@ -83,7 +122,7 @@ fn pv_create(partition_path: &str) -> Result<(), LvmError> {
     }
 }
 
-fn vg_create(partition_path: &str) -> Result<&str, LvmError> {
+fn vg_create(partition_path: &str) -> Result<&str, Error> {
     let volume_group_name = "rootvg";
     let c_volume_group_name = CString::new(volume_group_name).unwrap();
     let c_partition = CString::new(partition_path).unwrap();
@@ -101,7 +140,7 @@ fn vg_create(partition_path: &str) -> Result<&str, LvmError> {
         );
         if create_output == 0 {
             let slice = CStr::from_ptr((*(*error)).message);
-            let ret = LvmError {
+            let ret = Error {
                 message: String::from_utf8_lossy(slice.to_bytes()).to_string(),
             };
             Err(ret)
@@ -111,49 +150,41 @@ fn vg_create(partition_path: &str) -> Result<&str, LvmError> {
     }
 }
 
-fn query_volume_groups(volume_group_name: &str) -> Option<LVMVGData> {
-    let mut values = Vec::new();
+fn get_volume_group(volume_group_name: &str) -> Option<LVMVGData> {
+    let c_volume_group_name = CString::new(volume_group_name).unwrap();
     unsafe {
         let error = ptr::null_mut();
-        let output = lvm_rs::bd_lvm_vgs(error);
-        let mut index = 0;
-        loop {
-            let temp: *mut BDLVMVGdata = *output.add(index);
-            if temp.is_null() {
-                break;
-            }
-            let c_name = CStr::from_ptr((*temp).name);
-            let name = String::from_utf8_lossy(c_name.to_bytes()).to_string();
-            let c_uuid = CStr::from_ptr((*temp).uuid);
-            let uuid = String::from_utf8_lossy(c_uuid.to_bytes()).to_string();
-            let size = (*temp).size;
-            let free = (*temp).free;
-            let extent_size = (*temp).extent_size;
-            let extent_count = (*temp).extent_count;
-            let free_count = (*temp).free_count;
-            let pv_count = (*temp).pv_count;
-            let safe = LVMVGData {
-                name,
-                uuid,
-                size,
-                free,
-                extent_size,
-                extent_count,
-                free_count,
-                pv_count,
-            };
-            values.push(safe);
-            index += 1;
-            temp.drop_in_place();
+        let output = lvm_rs::bd_lvm_vginfo(c_volume_group_name.as_ptr(), error);
+
+        if !error.is_null() {
+            return None;
         }
-    };
-    values
-        .iter()
-        .find(|xz2| xz2.name.eq_ignore_ascii_case(volume_group_name))
-        .cloned()
+
+        let c_name = CStr::from_ptr((*output).name);
+        let name = String::from_utf8_lossy(c_name.to_bytes()).to_string();
+        let c_uuid = CStr::from_ptr((*output).uuid);
+        let uuid = String::from_utf8_lossy(c_uuid.to_bytes()).to_string();
+        let size = (*output).size;
+        let free = (*output).free;
+        let extent_size = (*output).extent_size;
+        let extent_count = (*output).extent_count;
+        let free_count = (*output).free_count;
+        let pv_count = (*output).pv_count;
+        let safe = LVMVGData {
+            name,
+            uuid,
+            size,
+            free,
+            extent_size,
+            extent_count,
+            free_count,
+            pv_count,
+        };
+        Some(safe)
+    }
 }
 
-fn lv_create(volume_group: &LVMVGData) -> Result<String, LvmError> {
+fn lv_create(volume_group: &LVMVGData) -> Result<&str, Error> {
     let logical_name = "rootlv";
     let c_logical_name = CString::new(logical_name).unwrap();
     let volume_group_name: &str = volume_group.name.borrow();
@@ -177,12 +208,12 @@ fn lv_create(volume_group: &LVMVGData) -> Result<String, LvmError> {
         );
         if create_output == 0 {
             let slice = CStr::from_ptr((*(*error)).message);
-            let ret = LvmError {
+            let ret = Error {
                 message: String::from_utf8_lossy(slice.to_bytes()).to_string(),
             };
             Err(ret)
         } else {
-            Ok(logical_name.to_string())
+            Ok(logical_name)
         }
     }
 }
@@ -206,7 +237,7 @@ fn get_partition_path(device: &LoopDevice) -> Option<String> {
     Some(format!("{device_string}p2"))
 }
 
-fn close_lvm() {
+pub fn close_lvm() {
     unsafe {
         lvm_rs::bd_lvm_close();
     }

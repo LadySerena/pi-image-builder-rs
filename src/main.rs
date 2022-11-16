@@ -33,10 +33,10 @@ steps to reimplement
 // Mount image
 
 fn main() {
-    let device = partitioning::allocate_image("lady_tel_test.img".to_string(), Size::from_gib(3));
+    let image = partitioning::allocate_image("lady_tel_test.img".to_string(), Size::from_gib(3));
     // TODO need to deactivate the logical volume prior to detaching the loop device
-    defer!(device.detach().unwrap());
-    println!("{}", device.path().unwrap().to_str().unwrap());
+    defer!(image.detach());
+    println!("{}", image.device.path().unwrap().to_str().unwrap());
 }
 
 fn get_urls(base: &str, file: &str) -> String {
