@@ -4,6 +4,7 @@ extern crate core;
 extern crate scopeguard;
 
 use size::Size;
+use std::borrow::Borrow;
 
 mod compression;
 mod configuration;
@@ -34,9 +35,9 @@ steps to reimplement
 
 fn main() {
     let image = partitioning::allocate_image("lady_tel_test.img".to_string(), Size::from_gib(3));
-    // TODO need to deactivate the logical volume prior to detaching the loop device
     defer!(image.detach());
     println!("{}", image.device.path().unwrap().to_str().unwrap());
+    filesystem::create(image.borrow());
 }
 
 fn get_urls(base: &str, file: &str) -> String {
