@@ -36,15 +36,15 @@ pub struct LVMVGData {
 
 #[derive(Clone)]
 pub struct LVMLVData {
-    pub name: String,
+    pub lv_name: String,
+    pub vg_name: String,
     pub uuid: String,
     // u64 is bytes except for extent_count, free_count, pv_count
     pub size: u64,
-    pub free: u64,
-    pub extent_size: u64,
-    pub extent_count: u64,
-    pub free_count: u64,
-    pub pv_count: u64,
+    pub attributes: String,
+    pub segment_type: String,
+    pub origin: String,
+    // there is more data for thin and cached logical volumes but I'm only using linear
 }
 
 const BYTE_TO_MEBIBYTE_FACTOR: u64 = 1024 * 1024;
