@@ -5,8 +5,6 @@ edition = "2021"
 build = "build.rs"
 [dependencies]
 bytes = "1.2.1"
-glib = "0.16.2"
-indoc = "1.0.7"
 loopdev = { git = "https://github.com/mdaffin/loopdev", rev = "64a8ddb", version = "0.5.0" }
 lvm-rs = { git = "https://github.com/LadySerena/lvm-rs.git", version = "0.1.0", branch = "main" }
 alpm = "2.2.1"
@@ -15,7 +13,6 @@ mbrman = "0.5.0"
 reqwest = { version = "0.11.12", features = ["blocking"] }
 rust-embed = "6.4.2"
 scopeguard = "1.1.0"
-sha256 = "1.1.1"
 xz2 = "0.1.7"
 bdfs-sys = { git = "https://github.com/LadySerena/bdfs-sys.git", branch = "main", version = "0.1.0" }
-
+md-5 = "0.10.5"

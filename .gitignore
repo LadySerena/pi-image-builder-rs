@@ -20,3 +20,4 @@ gen
 *.img
 *.xz
 SHA256SUMS
+*.tar*
