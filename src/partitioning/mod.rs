@@ -24,6 +24,18 @@ impl ImageInfo {
         lvm::close_lvm();
         self.device.detach().unwrap();
     }
+
+    pub fn root_path(&self) -> PathBuf {
+        let temp_buff = format!("/dev/{}/{}", self.vg_name, self.lv_name);
+        PathBuf::from(temp_buff)
+    }
+
+    pub fn boot_path(&self) -> PathBuf {
+        // TODO replace this clone but the data shouldn't change so ehhhh?
+        let mut path = self.device.path().unwrap().clone();
+        path.push("p1");
+        path
+    }
 }
 
 pub fn allocate_image(image_path: String, size: Size) -> ImageInfo {

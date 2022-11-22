@@ -13,7 +13,7 @@ pub fn create_image_file_systems(image: &ImageInfo) {
     assert!(init, "could not initialize filesystem");
 
     let boot_path = get_partition_path(image.device.borrow(), "p1").unwrap();
-    let root_path = get_partition_path(image.device.borrow(), "p2");
+    get_partition_path(image.device.borrow(), "p2");
     create_vfat(boot_path.borrow());
     create_ext4(format!("/dev/{}/{}", image.vg_name, image.lv_name).as_str());
 }

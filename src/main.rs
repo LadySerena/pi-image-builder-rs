@@ -8,13 +8,15 @@ use std::borrow::Borrow;
 use size::Size;
 
 use crate::fetch_media::{download_if_needed, Download};
+use crate::mount::mount;
 
 mod compression;
 mod configuration;
+mod extraction;
 mod fetch_media;
 mod filesystem;
+mod mount;
 mod partitioning;
-mod extraction;
 
 // TODO need to verify sha on image
 // TODO parameterize download link
@@ -38,8 +40,8 @@ steps to reimplement
 // Mount image
 
 fn main() {
-    let image = partitioning::allocate_image("lady_tel_test.img".to_string(),
-    Size::from_gib(5)); defer!(image.detach());
+    let image = partitioning::allocate_image("lady_tel_test.img".to_string(), Size::from_gib(5));
+    defer!(image.detach());
     println!("{}", image.device.path().unwrap().to_str().unwrap());
     filesystem::create(image.borrow());
     let base_url = "http://os.archlinuxarm.org/os/";
@@ -50,8 +52,8 @@ fn main() {
         get_urls(base_url, hash_file).as_str(),
     );
     download_if_needed(false, download.borrow());
-    
-    
+
+    mount(image.borrow());
 }
 
 fn get_urls(base: &str, file: &str) -> String {
