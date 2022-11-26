@@ -2,7 +2,7 @@ use std::borrow::Borrow;
 use std::ffi::CString;
 use std::ptr;
 
-use bdfs_sys::{bd_fs_check_deps, bd_fs_close, bd_fs_init, BDExtraArg};
+use bdfs_sys::{bd_fs_close, bd_fs_init, BDExtraArg};
 use loopdev::LoopDevice;
 
 use crate::partitioning::ImageInfo;

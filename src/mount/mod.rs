@@ -1,7 +1,7 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use sys_mount::{Mount, MountFlags, Mounts, SupportedFilesystems, Unmount, UnmountFlags};
+use sys_mount::{Mount, MountFlags, Mounts, Unmount, UnmountFlags};
 
 use crate::extraction::tarball;
 use crate::partitioning::ImageInfo;

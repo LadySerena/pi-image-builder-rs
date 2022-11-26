@@ -5,7 +5,7 @@ use std::fmt::{Display, Formatter};
 use std::ptr;
 
 use loopdev::LoopDevice;
-use lvm_rs::{bd_lvm_lvdeactivate, gchar, BDLVMVGdata};
+use lvm_rs::{bd_lvm_lvdeactivate, gchar};
 use size::Size;
 
 #[derive(Debug)]

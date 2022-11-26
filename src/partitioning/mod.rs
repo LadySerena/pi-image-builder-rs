@@ -32,7 +32,7 @@ impl ImageInfo {
 
     pub fn boot_path(&self) -> PathBuf {
         // TODO replace this clone but the data shouldn't change so ehhhh?
-        let mut path = self.device.path().unwrap();
+        let path = self.device.path().unwrap();
         let foo = format!("{}{}", path.to_str().unwrap(), "p1");
         PathBuf::from(foo)
     }
