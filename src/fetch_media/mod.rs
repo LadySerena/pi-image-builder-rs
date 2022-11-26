@@ -6,7 +6,7 @@ use std::fs::File;
 use std::io;
 use std::io::{Read, Write};
 use std::os::unix::fs::MetadataExt;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::time::Duration;
 
 pub struct Download(Url, Url);
@@ -32,7 +32,7 @@ impl Download {
     }
 }
 
-pub fn download_if_needed(force_overwrite: bool, download: &Download) {
+pub fn download_if_needed(force_overwrite: bool, download: &Download) -> PathBuf {
     let client = ClientBuilder::new()
         .timeout(Duration::from_secs(600))
         .build()
@@ -69,6 +69,7 @@ pub fn download_if_needed(force_overwrite: bool, download: &Download) {
     let image_hash = hasher.finalize();
     let image_hash_string = format!("{image_hash:x}");
     assert_eq!(image_hash_string.as_str(), hash_actual);
+    image_path.to_owned()
 }
 
 fn download_file(url: Url, file_name: &Path, client: &Client) {

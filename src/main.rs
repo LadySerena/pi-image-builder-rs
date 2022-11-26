@@ -18,7 +18,6 @@ mod filesystem;
 mod mount;
 mod partitioning;
 
-// TODO need to verify sha on image
 // TODO parameterize download link
 // TODO error handling
 // TODO most cleanup
@@ -51,9 +50,9 @@ fn main() {
         get_urls(base_url, image_file).as_str(),
         get_urls(base_url, hash_file).as_str(),
     );
-    download_if_needed(false, download.borrow());
+    let image_tar_ball = download_if_needed(false, download.borrow());
 
-    mount(image.borrow());
+    mount(image.borrow(), image_tar_ball.as_path());
 }
 
 fn get_urls(base: &str, file: &str) -> String {

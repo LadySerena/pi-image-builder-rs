@@ -4,13 +4,9 @@ use std::fs::File;
 use std::path::Path;
 use tar::Archive;
 
-pub fn tarball(path: &Path) {
-    let tar_gz = File::open(path).unwrap();
+pub fn tarball(tar_path: &Path, root_path: &Path) {
+    let tar_gz = File::open(tar_path).unwrap();
     let tar = GzDecoder::new(tar_gz);
     let mut archive = Archive::new(tar);
-    fs::create_dir_all("./mnt/boot").unwrap();
-    // TODO https://rust-lang-nursery.github.io/rust-cookbook/compression/tar.html
-    // TODO https://crates.io/crates/sys-mount
-    // I still need to mount the loop devices somewhere
-    archive.unpack("./mnt").unwrap();
+    archive.unpack(root_path).unwrap();
 }
