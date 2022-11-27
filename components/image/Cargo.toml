@@ -20,5 +20,4 @@ flate2 = "1.0.24"
 tar = "0.4.38"
 sys-mount = "2.0.1"
 
-[dev-dependencies]
-indoc = "1.0.7"
+

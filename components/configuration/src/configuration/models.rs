@@ -4,8 +4,6 @@ use std::ops::Add;
 use std::path::PathBuf;
 use std::{fs, io};
 
-use crate::configuration;
-
 #[derive(Debug)]
 pub enum SysctlErr {
     DropInError(SysctlDropInError),
@@ -57,7 +55,7 @@ impl SysctlList {
     pub fn collect_sysctls(&self) -> String {
         self.sysctls
             .iter()
-            .map(configuration::models::SysctlEntry::write_to_string)
+            .map(SysctlEntry::write_to_string)
             .collect::<Vec<String>>()
             .join("\n")
             .add("\n")
@@ -96,9 +94,8 @@ fn is_valid_sysctl_dir(drop_in: &PathBuf) -> bool {
 
 #[cfg(test)]
 mod tests {
-    use indoc::indoc;
-
     use crate::configuration::models::{SysctlEntry, SysctlList};
+    use indoc::indoc;
 
     #[test]
     fn validate_sysctl_write() {

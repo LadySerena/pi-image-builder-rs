@@ -11,7 +11,6 @@ use crate::fetch_media::{download_if_needed, Download};
 use crate::mount::mount;
 
 mod compression;
-mod configuration;
 mod extraction;
 mod fetch_media;
 mod filesystem;

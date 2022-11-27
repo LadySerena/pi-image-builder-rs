@@ -816,7 +816,6 @@ dependencies = [
  "bdfs-sys",
  "bytes",
  "flate2",
- "indoc",
  "loopdev 0.5.0",
  "lvm-rs",
  "mbrman",
@@ -833,6 +832,9 @@ dependencies = [
 [[package]]
 name = "pi-image-configurator"
 version = "0.1.0"
+dependencies = [
+ "indoc",
+]
 
 [[package]]
 name = "pin-project-lite"
