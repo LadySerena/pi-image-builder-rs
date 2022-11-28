@@ -19,6 +19,11 @@ lol
 
 #TODO
 
+## CI
+
+- TODO
+    - setup ci with [this builder image](https://github.com/GoogleCloudPlatform/compute-archlinux-image-builder)
+
 ## Required C Libraries
 
 - loopdev requires `libclang.so`
