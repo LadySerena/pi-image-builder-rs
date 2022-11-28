@@ -5,3 +5,6 @@ edition = "2021"
 
 [dev-dependencies]
 indoc = "1.0.7"
+
+[dependencies]
+alpm = "2.2.1"

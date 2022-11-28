@@ -6,13 +6,13 @@ use sys_mount::{Mount, MountFlags, Mounts, Unmount, UnmountFlags};
 use crate::extraction::tarball;
 use crate::partitioning::ImageInfo;
 
-pub fn mount(info: &ImageInfo, source: &Path) {
-    let root_path = Path::new("../../../fake-root");
+pub fn mount(info: &ImageInfo, source: &Path) -> Mounts {
+    let root_path = Path::new("./fake-root");
 
     fs::create_dir_all(root_path).unwrap();
     let root = Mount::builder()
         .fstype("ext4")
-        .mount(info.root_path(), "../../../fake-root")
+        .mount(info.root_path(), root_path)
         .unwrap()
         .into_unmount_drop(UnmountFlags::DETACH);
 
@@ -55,8 +55,7 @@ pub fn mount(info: &ImageInfo, source: &Path) {
         .unwrap()
         .into_unmount_drop(UnmountFlags::DETACH);
 
-    let mut mounts = Mounts(vec![root, boot, proc, sys, dev]);
-    mounts.unmount(false).unwrap();
+    Mounts(vec![root, boot, proc, sys, dev])
 }
 
 fn append_to_root(root: &Path, data: &str) -> PathBuf {

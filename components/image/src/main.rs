@@ -11,6 +11,7 @@ use crate::fetch_media::{download_if_needed, Download};
 use crate::mount::mount;
 
 mod compression;
+mod config;
 mod extraction;
 mod fetch_media;
 mod filesystem;
@@ -51,7 +52,13 @@ fn main() {
     );
     let image_tar_ball = download_if_needed(false, download.borrow());
 
-    mount(image.borrow(), image_tar_ball.as_path());
+    let mut mounted_file_systems = mount(image.borrow(), image_tar_ball.as_path());
+
+    config::packages(mounted_file_systems.borrow());
+
+    mounted_file_systems.unmount(false).unwrap();
+
+    println!("finished installation");
 }
 
 fn get_urls(base: &str, file: &str) -> String {
