@@ -55,7 +55,7 @@ pub fn download_if_needed(force_overwrite: bool, download: &Download) -> PathBuf
     hash_handle.read_to_string(&mut hash_content).unwrap();
     let hash_split = hash_content
         .split(' ')
-        .map(std::string::ToString::to_string)
+        .map(ToString::to_string)
         .collect::<Vec<String>>();
     let hash_actual = hash_split[0].as_str();
 
