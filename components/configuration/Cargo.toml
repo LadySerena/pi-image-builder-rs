@@ -8,3 +8,4 @@ indoc = "1.0.7"
 
 [dependencies]
 alpm = "2.2.1"
+mbrman = "0.5.1"

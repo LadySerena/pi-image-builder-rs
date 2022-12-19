@@ -22,6 +22,11 @@ pub fn create_partition_tables(device: &mut File, boot_size: Size) {
 
     let root_partition = get_next_lba_and_remainder(Rc::as_ref(&mbr));
 
+    // this section is still not bootable
+    // see this https://www.reddit.com/r/ODroid/comments/7zwkrt/tutorial_how_to_boot_linux_from_an_ssdhdd_on_the/ for more info
+    // https://forum.odroid.com/viewtopic.php?t=35674
+    // this is the important bit https://wiki.archlinux.org/title/Install_Arch_Linux_on_LVM#Adding_mkinitcpio_hooks
+
     Rc::get_mut(&mut mbr).unwrap()[2] = MBRPartitionEntry {
         boot: BOOT_INACTIVE,
         first_chs: CHS::empty(),

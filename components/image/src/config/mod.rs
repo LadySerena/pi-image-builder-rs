@@ -1,3 +1,5 @@
+mod fstab;
+
 use std::borrow::{Borrow, BorrowMut};
 use std::os::unix::ffi::OsStrExt;
 use std::path::{Path, PathBuf};
@@ -31,6 +33,8 @@ pub fn packages(mounts: &Mounts) {
         "lsb-release",
         "open-iscsi",
         "containerd",
+        "mkinitcpio",
+        "uboot-tools",
         "cni-plugins",
         "crictl",
         "kubeadm",
@@ -64,12 +68,16 @@ pub fn packages(mounts: &Mounts) {
         _ => (),
     });
 
-    // TODO fix question callback to remove conflicting iptables package
-    // handle.set_question_cb((), |question: AnyQuestion, data| {
-    //     if let Question::Conflict(question) = question.question() {
-    //         question.remove();
-    //     }
-    // });
+    handle.set_question_cb((), |question: AnyQuestion, data| {
+        if let Question::Conflict(mut question) = question.question() {
+            question.set_remove(true);
+            println!(
+                "package1: {} vs package2: {}",
+                question.conflict().package1(),
+                question.conflict().package2()
+            );
+        }
+    });
 
     handle
         .register_syncdb_mut(ALARM_REPO_NAME, SigLevel::USE_DEFAULT)

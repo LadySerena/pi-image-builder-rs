@@ -43,7 +43,7 @@ pub fn allocate_image(image_path: String, size: Size) -> ImageInfo {
 
     let path = Rc::new(PathBuf::from(image_path));
     let mut file_handle = allocate_file(path.as_ref(), size);
-    create_partition_tables(&mut file_handle, Size::from_mebibytes(250));
+    create_partition_tables(&mut file_handle, Size::from_mebibytes(400));
     file_handle.flush().unwrap();
     let backing_device = Rc::new(setup_loop(path.as_ref()));
 

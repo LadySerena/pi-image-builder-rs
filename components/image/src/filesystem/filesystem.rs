@@ -16,6 +16,7 @@ pub fn create_image_file_systems(image: &ImageInfo) {
     get_partition_path(image.device.borrow(), "p2");
     create_vfat(boot_path.borrow());
     create_ext4(format!("/dev/{}/{}", image.vg_name, image.lv_name).as_str());
+    label_vfat(boot_path.borrow(), "BOOT")
 }
 
 fn init_fs() -> bool {
@@ -50,6 +51,17 @@ fn create_vfat(partition_path: &str) {
         let extra_args_ptr: *mut *const BDExtraArg = extra_args.as_mut_ptr();
         let success = bdfs_sys::bd_fs_vfat_mkfs(c_partition_path.as_ptr(), extra_args_ptr, error);
         assert_ne!(success, 0);
+    }
+}
+
+fn label_vfat(partition_path: &str, label: &str) {
+    let c_partition_path = CString::new(partition_path).unwrap();
+    let c_label = CString::new(label).unwrap();
+    unsafe {
+        let error = ptr::null_mut();
+        let success =
+            bdfs_sys::bd_fs_vfat_set_label(c_partition_path.as_ptr(), c_label.as_ptr(), error);
+        assert_ne!(success, 0)
     }
 }
 

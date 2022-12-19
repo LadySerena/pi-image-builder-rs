@@ -1,0 +1,12 @@
+# Static information about the filesystems.
+# See fstab(5) for details.
+
+# <file system> <dir> <type> <options> <dump> <pass>
+
+# boot filesystem
+LABEL={{ boot_label }} /boot vfat defaults 0 0
+# other filesystems
+# TODO sort out filesystem mount options
+{% for volume in volumes %}
+{{ volume.mapper }} {{ volume.mount_point }} {{ volume.filesystem }} defaults 0 1
+{% endfor %}
