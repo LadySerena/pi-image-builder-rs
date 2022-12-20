@@ -4,9 +4,9 @@ use std::path::{Path, PathBuf};
 use sys_mount::{Mount, MountFlags, Mounts, Unmount, UnmountFlags};
 
 use crate::extraction::tarball;
-use crate::partitioning::ImageInfo;
+use crate::partitioning::{ImageInfo, RuntimeImageInfo};
 
-pub fn mount(info: &ImageInfo, source: &Path) -> Mounts {
+pub fn mount(info: &RuntimeImageInfo, source: &Path) -> Mounts {
     let root_path = Path::new("./fake-root");
 
     fs::create_dir_all(root_path).unwrap();

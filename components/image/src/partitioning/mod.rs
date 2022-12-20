@@ -1,36 +1,44 @@
 use std::fs::{File, OpenOptions};
 use std::io::Write;
-
 use std::path::{Path, PathBuf};
 use std::rc::Rc;
 
-use crate::partitioning::partition::create_partition_tables;
 use loopdev::{LoopControl, LoopDevice};
-
+#[cfg(test)]
+use mockall::automock;
 use size::Size;
+
+use crate::partitioning::partition::create_partition_tables;
 
 mod lvm;
 mod partition;
 
-pub struct ImageInfo {
+#[cfg_attr(test, automock)]
+pub trait ImageInfo {
+    fn detach(&self);
+    fn root_path(&self) -> PathBuf;
+    fn boot_path(&self) -> PathBuf;
+}
+
+pub struct RuntimeImageInfo {
     pub vg_name: String,
     pub lv_name: String,
     pub device: LoopDevice,
 }
 
-impl ImageInfo {
-    pub fn detach(&self) {
+impl ImageInfo for RuntimeImageInfo {
+    fn detach(&self) {
         lvm::deactivate_logical_volume(self.vg_name.as_str(), self.lv_name.as_str()).unwrap();
         lvm::close_lvm();
         self.device.detach().unwrap();
     }
 
-    pub fn root_path(&self) -> PathBuf {
+    fn root_path(&self) -> PathBuf {
         let temp_buff = format!("/dev/{}/{}", self.vg_name, self.lv_name);
         PathBuf::from(temp_buff)
     }
 
-    pub fn boot_path(&self) -> PathBuf {
+    fn boot_path(&self) -> PathBuf {
         // TODO replace this clone but the data shouldn't change so ehhhh?
         let path = self.device.path().unwrap();
         let foo = format!("{}{}", path.to_str().unwrap(), "p1");
@@ -38,7 +46,7 @@ impl ImageInfo {
     }
 }
 
-pub fn allocate_image(image_path: String, size: Size) -> ImageInfo {
+pub fn allocate_image(image_path: String, size: Size) -> RuntimeImageInfo {
     // needs to do the following
 
     let path = Rc::new(PathBuf::from(image_path));
@@ -51,7 +59,7 @@ pub fn allocate_image(image_path: String, size: Size) -> ImageInfo {
     let vg_name = volumes.0;
     let lv_name = volumes.1;
 
-    ImageInfo {
+    RuntimeImageInfo {
         vg_name,
         lv_name,
         device: Rc::try_unwrap(backing_device).unwrap(),

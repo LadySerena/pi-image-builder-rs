@@ -5,9 +5,9 @@ use std::ptr;
 use bdfs_sys::{bd_fs_close, bd_fs_init, BDExtraArg};
 use loopdev::LoopDevice;
 
-use crate::partitioning::ImageInfo;
+use crate::partitioning::RuntimeImageInfo;
 
-pub fn create_image_file_systems(image: &ImageInfo) {
+pub fn create_image_file_systems(image: &RuntimeImageInfo) {
     let init = init_fs();
     defer!(close_fs());
     assert!(init, "could not initialize filesystem");

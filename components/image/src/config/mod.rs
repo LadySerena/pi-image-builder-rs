@@ -4,11 +4,21 @@ use std::borrow::{Borrow, BorrowMut};
 use std::os::unix::ffi::OsStrExt;
 use std::path::{Path, PathBuf};
 
+use crate::config::fstab::create_fstab;
+use crate::partitioning::{ImageInfo, RuntimeImageInfo};
 use alpm::{
     Alpm, AnyEvent, AnyQuestion, Db, DbMut, Event, EventType, LogLevel, Package, Pkg, Question,
     SigLevel, TransFlag,
 };
 use sys_mount::Mounts;
+
+pub fn do_config(info: &dyn ImageInfo, mounts: &Mounts) {
+    let mounted_root = mounts.0.get(0).unwrap().target_path();
+
+    create_fstab(info, mounted_root).unwrap();
+
+    packages(mounts);
+}
 
 #[allow(clippy::too_many_lines)]
 pub fn packages(mounts: &Mounts) {

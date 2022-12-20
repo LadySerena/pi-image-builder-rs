@@ -9,6 +9,7 @@ use size::Size;
 
 use crate::fetch_media::{download_if_needed, Download};
 use crate::mount::mount;
+use crate::partitioning::ImageInfo;
 
 mod compression;
 mod config;
