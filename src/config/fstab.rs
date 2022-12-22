@@ -1,12 +1,12 @@
 use std::ffi::OsStr;
-use std::fs::File;
+use std::fs::{create_dir_all, File};
 use std::io::Write;
 use std::path::{Path, PathBuf};
 
 use askama::{Error, Template};
-use sys_mount::Mounts;
 
-use crate::partitioning::{ImageInfo, RuntimeImageInfo};
+
+use crate::partitioning::{ImageInfo};
 
 #[derive(Template)]
 #[template(path = "etc/fstab")]
@@ -37,7 +37,13 @@ pub fn create_fstab(info: &dyn ImageInfo, mounted_root: &Path) -> Result<(), Err
 
     let data = template.render()?;
 
-    let fstab: PathBuf = [mounted_root.as_os_str(), OsStr::new("etc/fstab")]
+    let fstab_dir: PathBuf = [mounted_root.as_os_str(), OsStr::new("etc")]
+        .iter()
+        .collect();
+
+    create_dir_all(fstab_dir.as_path()).unwrap();
+
+    let fstab: PathBuf = [fstab_dir.as_os_str(), OsStr::new("fstab")]
         .iter()
         .collect();
 
@@ -50,11 +56,11 @@ pub fn create_fstab(info: &dyn ImageInfo, mounted_root: &Path) -> Result<(), Err
 
 #[cfg(test)]
 mod tests {
-    use std::env;
 
     use askama::Error;
     use indoc::indoc;
-    use loopdev::LoopDevice;
+    
+    use tempdir::TempDir;
 
     use crate::partitioning::MockImageInfo;
 
@@ -69,8 +75,10 @@ mod tests {
             .expect_root_path()
             .times(1)
             .returning(move || root.clone());
-        let mut dir = env::temp_dir();
-        dir.push("mock_root_mount");
+
+        let dir = TempDir::new("mock_root_mount").unwrap();
+        // let mut dir = env::temp_dir();
+        // dir.push("mock_root_mount");
 
         // TODO make test not panic
         // called `Result::unwrap()` on an `Err` value: Os { code: 2, kind: NotFound,
@@ -108,7 +116,10 @@ mod tests {
         //
         //
         // Process finished with exit code 101
-        create_fstab(&mock_info, dir.as_path()).expect("TODO: panic message");
+
+        create_fstab(&mock_info, dir.path()).expect("TODO: panic message");
+
+        dir.close().unwrap();
 
         Ok(())
     }

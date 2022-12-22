@@ -7,7 +7,7 @@ use crate::extraction::tarball;
 use crate::partitioning::{ImageInfo, RuntimeImageInfo};
 
 pub fn mount(info: &RuntimeImageInfo, source: &Path) -> Mounts {
-    let root_path = Path::new("./fake-root");
+    let root_path = Path::new("../../fake-root");
 
     fs::create_dir_all(root_path).unwrap();
     let root = Mount::builder()

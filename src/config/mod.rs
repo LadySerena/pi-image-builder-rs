@@ -1,13 +1,13 @@
 mod fstab;
 
-use std::borrow::{Borrow, BorrowMut};
+
 use std::os::unix::ffi::OsStrExt;
 use std::path::{Path, PathBuf};
 
 use crate::config::fstab::create_fstab;
-use crate::partitioning::{ImageInfo, RuntimeImageInfo};
+use crate::partitioning::{ImageInfo};
 use alpm::{
-    Alpm, AnyEvent, AnyQuestion, Db, DbMut, Event, EventType, LogLevel, Package, Pkg, Question,
+    Alpm, AnyEvent, AnyQuestion, Event, LogLevel, Question,
     SigLevel, TransFlag,
 };
 use sys_mount::Mounts;
@@ -78,7 +78,7 @@ pub fn packages(mounts: &Mounts) {
         _ => (),
     });
 
-    handle.set_question_cb((), |question: AnyQuestion, data| {
+    handle.set_question_cb((), |question: AnyQuestion, _data| {
         if let Question::Conflict(mut question) = question.question() {
             question.set_remove(true);
             println!(
