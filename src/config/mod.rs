@@ -1,22 +1,17 @@
 mod fstab;
 
-
+use crate::partitioning::ImageInfo;
+use alpm::{Alpm, AnyEvent, AnyQuestion, Event, LogLevel, Question, SigLevel, TransFlag};
 use std::os::unix::ffi::OsStrExt;
 use std::path::{Path, PathBuf};
-
-use crate::config::fstab::create_fstab;
-use crate::partitioning::{ImageInfo};
-use alpm::{
-    Alpm, AnyEvent, AnyQuestion, Event, LogLevel, Question,
-    SigLevel, TransFlag,
-};
+use std::process::Command;
 use sys_mount::Mounts;
 
-pub fn do_config(info: &dyn ImageInfo, mounts: &Mounts) {
+pub fn start(info: &dyn ImageInfo, mounts: &Mounts) {
     let mounted_root = mounts.0.get(0).unwrap().target_path();
 
-    create_fstab(info, mounted_root).unwrap();
-
+    fstab::create(info, mounted_root).unwrap();
+    init_keyring(mounted_root);
     packages(mounts);
 }
 
@@ -175,4 +170,51 @@ pub fn packages(mounts: &Mounts) {
     handle.trans_commit().unwrap();
 
     handle.trans_release().unwrap();
+}
+
+fn init_keyring(mounted_root: &Path) {
+    let pacman_config = get_pacman_paths(mounted_root, "/etc/pacman.conf");
+    let pacman_key_dir = get_pacman_paths(mounted_root, "/etc/pacman.d/gnupg");
+    let key_init_output = Command::new("pacman-key")
+        .arg("--config")
+        .arg(pacman_config)
+        .arg("--gpgdir")
+        .arg(pacman_key_dir)
+        .arg("--init")
+        .output();
+    match key_init_output {
+        Ok(output) => {
+            let stdout = String::from_utf8(output.stdout).unwrap();
+            let stderr = String::from_utf8(output.stderr).unwrap();
+            println!("{stdout}");
+            eprintln!("{stderr}");
+
+            assert!(output.status.success());
+        }
+        Err(e) => {
+            panic!("{}", e);
+        }
+    }
+}
+
+fn get_pacman_paths(initial_path: &Path, to_be_joined: &str) -> PathBuf {
+    // this function does not work as expected when there is a leading slash in the `to_be_joined` variable
+    let temp = to_be_joined.trim_start_matches('/');
+    [initial_path, Path::new(temp)].iter().collect()
+}
+
+#[cfg(test)]
+mod tests {
+    use std::path::{Path, PathBuf};
+
+    use super::get_pacman_paths;
+
+    #[test]
+    fn get_pacman_paths_config() {
+        let expected_path = PathBuf::from("./fake-root/fake-dir/fake-file");
+        let mounted_root = Path::new("./fake-root");
+        let config_path = "fake-dir/fake-file";
+        let actual_path = get_pacman_paths(mounted_root, config_path);
+        assert_eq!(actual_path, expected_path);
+    }
 }

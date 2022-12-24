@@ -40,6 +40,8 @@ steps to reimplement
 // Mount image
 
 fn main() {
+    // lead on fixing my fucked up permissions issues
+    // https://bbs.archlinux.org/viewtopic.php?pid=1498331#p1498331
     let image = partitioning::allocate_image("lady_tel_test.img".to_string(), Size::from_gib(5));
     defer!(image.detach());
     println!("{}", image.device.path().unwrap().to_str().unwrap());
@@ -55,7 +57,8 @@ fn main() {
 
     let mut mounted_file_systems = mount(image.borrow(), image_tar_ball.as_path());
 
-    config::packages(mounted_file_systems.borrow());
+    config::start(image.borrow(), &mounted_file_systems);
+    // config::packages(mounted_file_systems.borrow());
 
     mounted_file_systems.unmount(false).unwrap();
 
