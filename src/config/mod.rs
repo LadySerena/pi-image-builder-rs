@@ -5,7 +5,6 @@ use crate::partitioning::ImageInfo;
 use alpm::{Alpm, AnyEvent, AnyQuestion, Event, LogLevel, Question, SigLevel, TransFlag};
 use indoc::indoc;
 
-use std::ffi::OsStr;
 use std::fs::{canonicalize, DirBuilder, File, OpenOptions};
 use std::io::{Result, Write};
 use std::os::unix::ffi::OsStrExt;
@@ -190,6 +189,8 @@ pub fn packages(root: &Path) {
     handle.trans_commit().unwrap();
 
     handle.trans_release().unwrap();
+
+    handle.release().unwrap();
 }
 
 fn copy_embedded_file(mount_point: &Path, mounted_filename: &str, content: &str) {
@@ -259,6 +260,14 @@ fn create_user(username: &str, mounted_root: &Path) {
         .output();
     handle_command_output("create user", create_user);
 
+    let delete_alarm = Command::new("userdel")
+        .arg("--root")
+        .arg(&root)
+        .arg("alarm")
+        .output();
+
+    handle_command_output("delete alarm", delete_alarm);
+
     // create sudoers entry
     let sudoers = join_paths(mounted_root, "etc/sudoers");
     let sudo_entry = format!("%{sudo_group_name} ALL=(ALL) NOPASSWD: ALL");
@@ -309,20 +318,6 @@ fn compile_u_boot_script(root: &Path) {
         .arg(scr)
         .output();
     handle_command_output("compile u-boot", compile);
-}
-
-fn run_in_chroot(original: Command, root: &Path, directory: Option<&Path>) -> Result<Output> {
-    let mut new_command = Command::new("chroot");
-    new_command.arg(root);
-    new_command.arg(original.get_program());
-    let args: Vec<&OsStr> = original.get_args().collect();
-    // TODO handle the option directory argument
-
-    match directory {
-        Some(dir) => new_command.current_dir(dir),
-        None => &mut new_command,
-    };
-    new_command.output()
 }
 
 fn handle_command_output(comment: &str, res: Result<Output>) {
