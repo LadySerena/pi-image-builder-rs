@@ -4,8 +4,9 @@ use self::fstab::create;
 use crate::partitioning::ImageInfo;
 use alpm::{Alpm, AnyEvent, AnyQuestion, Event, LogLevel, Question, SigLevel, TransFlag};
 use indoc::indoc;
-
-use std::fs::{canonicalize, DirBuilder, File, OpenOptions};
+use lazy_static::lazy_static;
+use regex::bytes::Regex;
+use std::fs::{canonicalize, read_dir, DirBuilder, File, OpenOptions};
 use std::io::{Result, Write};
 use std::os::unix::ffi::OsStrExt;
 use std::os::unix::fs::DirBuilderExt;
@@ -334,6 +335,19 @@ fn handle_command_output(comment: &str, res: Result<Output>) {
             panic!("{}", e);
         }
     }
+}
+
+fn kill_process_containing_command(expression: &Regex) -> std::io::Result<()> {
+    lazy_static! {
+        static ref PID_RE: Regex = Regex::new(r"\d+").unwrap();
+    }
+
+    for entry in read_dir("/proc/")? {
+        let entry = entry?;
+        let path = entry.path();
+        if path.is_dir() && PID_RE.is_match(path.as_os_str().as_bytes()) {}
+    }
+    Ok(())
 }
 
 #[cfg(test)]
